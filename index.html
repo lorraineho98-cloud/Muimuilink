@@ -3,60 +3,2352 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>商品价格监控看板</title>
+  <title>MY 商铺促销与商品链接管理中心</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #333; }
-    .container { max-width: 720px; margin: 0 auto; }
-    h1 { font-size: 22px; margin-bottom: 16px; color: #111; }
-    .card { background: #fff; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; }
-    .info h2 { font-size: 16px; margin: 0 0 6px 0; }
-    .time { font-size: 12px; color: #888; }
-    .prices { text-align: right; }
-    .current { font-size: 20px; font-weight: bold; color: #e53935; }
-    .old { font-size: 13px; color: #999; text-decoration: line-through; margin-left: 6px; }
-    .badge { display: inline-block; margin-top: 6px; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #ffebee; color: #c62828; }
-    .badge.flat { background: #f0f0f0; color: #666; }
+    /* ==========================================================================
+       1. 设计系统与变量定义 (低饱和度现代柔和配色)
+       ========================================================================== */
+    :root {
+      --bg-app: #f4f6f8;
+      --bg-surface: #ffffff;
+      --bg-subtle: #eef2f5;
+      --bg-hover: #f8fafc;
+
+      --text-primary: #1e293b;
+      --text-secondary: #526071;
+      --text-muted: #8492a6;
+
+      --accent-primary: #4a7c73;      /* 鼠尾草深绿 */
+      --accent-primary-hover: #3b655e;
+      --accent-soft: #e6f0ee;
+
+      --accent-blue: #4b7bec;         /* 柔海蓝 */
+      --accent-blue-soft: #ebf2ff;
+
+      --shopee-color: #d96b43;        /* 低饱和陶土橙 */
+      --shopee-soft: #fdf0eb;
+
+      --tiktok-color: #2c3e50;        /* 柔墨黑蓝 */
+      --tiktok-soft: #eaeff4;
+
+      --danger-color: #c95656;
+      --danger-soft: #fbeeee;
+
+      --warning-color: #c4842d;
+      --warning-soft: #fbf4e8;
+
+      --border-light: #e2e8f0;
+      --shadow-sm: 0 2px 6px rgba(30, 41, 59, 0.04);
+      --shadow-md: 0 6px 16px rgba(30, 41, 59, 0.07);
+      --shadow-lg: 0 12px 28px rgba(30, 41, 59, 0.12);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 999px;
+
+      --transition: all 0.22s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 60px;
+    }
+
+    /* ==========================================================================
+       2. 通用按钮与交互动画
+       ========================================================================== */
+    button, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: var(--transition);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    button:hover, .btn:hover {
+      transform: translateY(-1.5px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    button:active, .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background-color: var(--accent-primary-hover);
+    }
+
+    .btn-blue {
+      background-color: var(--accent-blue);
+      color: #ffffff;
+    }
+    .btn-blue:hover {
+      background-color: #3a68d8;
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border-light);
+    }
+    .btn-secondary:hover {
+      background-color: var(--bg-subtle);
+      border-color: #cbd5e1;
+    }
+
+    .btn-soft {
+      background-color: var(--accent-soft);
+      color: var(--accent-primary);
+    }
+    .btn-soft:hover {
+      background-color: #d6e7e4;
+    }
+
+    .btn-danger-soft {
+      background-color: var(--danger-soft);
+      color: var(--danger-color);
+    }
+    .btn-danger-soft:hover {
+      background-color: #f6dddd;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* ==========================================================================
+       3. 布局容器与顶部导航栏
+       ========================================================================== */
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    header.app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-light);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--accent-primary), #6ca399);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(74, 124, 115, 0.25);
+    }
+
+    .brand-title h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-title p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       4. 商铺导航与直达卡片网格 (6个指定商铺)
+       ========================================================================== */
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 26px 0 14px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-badge {
+      background: var(--accent-soft);
+      color: var(--accent-primary);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+    }
+
+    .stores-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 16px;
+    }
+
+    .store-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .store-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: #cbd5e1;
+    }
+
+    .store-card.active-filter {
+      border: 2px solid var(--accent-primary);
+      background-color: #fbfdfc;
+    }
+
+    .store-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .store-platform-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .platform-shopee {
+      background: var(--shopee-soft);
+      color: var(--shopee-color);
+    }
+
+    .platform-tiktok {
+      background: var(--tiktok-soft);
+      color: var(--tiktok-color);
+    }
+
+    .store-promo-pill {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--warning-soft);
+      color: var(--warning-color);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+    }
+
+    .store-info h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 6px 0 4px;
+      color: var(--text-primary);
+    }
+
+    .store-info p {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+
+    .store-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-light);
+    }
+
+    /* ==========================================================================
+       5. 促销更新 & 添加商品链接控制面板
+       ========================================================================== */
+    .control-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-top: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      border-radius: var(--radius-pill);
+      padding: 8px 18px;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-primary);
+      color: #ffffff;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full-span {
+      grid-column: 1 / -1;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .detected-hint {
+      color: var(--accent-primary);
+      font-weight: 700;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    input[type="number"],
+    input[type="datetime-local"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background-color: var(--bg-app);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      transition: var(--transition);
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      background-color: #ffffff;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    .form-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .discount-preview {
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: var(--bg-subtle);
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+    }
+
+    .discount-preview strong {
+      color: var(--shopee-color);
+    }
+
+    /* ==========================================================================
+       6. 筛选与搜索栏
+       ========================================================================== */
+    .filter-bar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      margin-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-box {
+      flex: 1 1 240px;
+      position: relative;
+    }
+
+    .search-box input {
+      padding-left: 36px;
+      border-radius: var(--radius-pill);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .filter-selects {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filter-selects select {
+      width: auto;
+      min-width: 145px;
+      border-radius: var(--radius-pill);
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+
+    /* ==========================================================================
+       7. 商品监控卡片网格
+       ========================================================================== */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .product-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      position: relative;
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .product-card.status-expired {
+      opacity: 0.72;
+      background-color: #f8fafc;
+    }
+
+    .product-card.status-grabbed {
+      border-color: #a3c9c2;
+      background-color: #f6fbfa;
+    }
+
+    .card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .badge-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .promo-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-soft);
+      color: var(--accent-primary);
+    }
+
+    .discount-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      background: var(--shopee-soft);
+      color: var(--shopee-color);
+    }
+
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+    }
+    .status-active { background: #e6f4ea; color: #2b7a4b; }
+    .status-grabbed { background: var(--accent-blue-soft); color: var(--accent-blue); }
+    .status-expired { background: #edf2f7; color: #718096; }
+
+    .link-type-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .link-verified {
+      background: #e3f5ec;
+      color: #1e6b43;
+      border: 1px solid #bce3cf;
+    }
+    .link-shop-search {
+      background: #eef4ff;
+      color: #3559a8;
+      border: 1px solid #cbd9f7;
+    }
+    .link-showcase {
+      background: #f3effb;
+      color: #5a3e99;
+      border: 1px solid #dcd1f2;
+    }
+
+    .product-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-top: 8px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .product-store-name {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .price-box {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      background: var(--bg-app);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      margin-top: 10px;
+    }
+
+    .promo-price {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--shopee-color);
+    }
+
+    .orig-price {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .countdown-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .countdown-timer {
+      font-weight: 700;
+      color: var(--warning-color);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .product-url-preview {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: var(--bg-subtle);
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .card-sub-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      grid-column: 1 / -1;
+    }
+
+    .card-sub-actions button {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 11.5px;
+    }
+
+    /* ==========================================================================
+       8. 模态框 (编辑促销弹窗 & 确认弹窗) & Toast 提示
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      padding: 24px;
+      box-shadow: var(--shadow-lg);
+      animation: modalPop 0.2s ease-out;
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--text-primary);
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideIn 0.25s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 48px 20px;
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-light);
+      border-radius: var(--radius-lg);
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 640px) {
+      .stores-grid { grid-template-columns: 1fr; }
+      .products-grid { grid-template-columns: 1fr; }
+      .header-inner { flex-direction: column; align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📊 实时商品价格对比监控</h1>
-    <div id="list">正在加载最新比价数据...</div>
+
+  <!-- 顶部导航栏 -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <h1>MY 商铺促销与商品链接管理中心</h1>
+          <p>Shopee MY & TikTok Shop 6大官方店铺聚合监控 · 离线本地持久化</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn-primary btn-sm" onclick="syncVerifiedLinksCatalog()" title="一键将所有商品升级为最新 42 款实测 Shopee/TikTok 直达链接">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          一键更新全部商品直链 (42款)
+        </button>
+        <button class="btn-soft btn-sm" onclick="openBatchLinkUpdateModal()" title="批量替换或更新现有商品链接">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          批量更新单品链接
+        </button>
+        <button class="btn-secondary btn-sm" onclick="exportJSON()" title="导出 JSON 备份文件">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          导出 JSON
+        </button>
+        <label class="btn btn-secondary btn-sm" style="margin:0;" title="导入 JSON 备份文件">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          导入 JSON
+          <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importJSON(event)" />
+        </label>
+        <button class="btn-danger-soft btn-sm" onclick="openResetModal()" title="重置为初始默认数据">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          一键重置数据
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 1. 商铺导航与直达中心 -->
+    <section>
+      <div class="section-header">
+        <div class="section-title">
+          <span>6 大商铺直达导航</span>
+          <span class="section-badge">点击店铺卡片可快速筛选商品</span>
+        </div>
+        <button class="btn-soft btn-sm" id="clearStoreFilterBtn" style="display:none;" onclick="selectStoreFilter('ALL')">
+          显示全部店铺商品
+        </button>
+      </div>
+
+      <div class="stores-grid" id="storesGrid">
+        <!-- 由 JS 动态渲染 6 个商铺卡片 -->
+      </div>
+    </section>
+
+    <!-- 2. 更新促销 / 添加商品链接管理面板 -->
+    <section class="control-panel">
+      <div class="panel-tabs">
+        <button class="tab-btn active" id="tabSingleBtn" onclick="switchAddTab('single')">+ 添加单个商品与促销</button>
+        <button class="tab-btn" id="tabBatchBtn" onclick="switchAddTab('batch')">批量粘贴多条链接导入</button>
+      </div>
+
+      <!-- 单个添加表单 -->
+      <form id="singleAddForm" onsubmit="handleSingleAdd(event)">
+        <div class="form-grid">
+          <div class="form-group full-span">
+            <label for="prodUrl">
+              <span>粘贴商品直达链接 (支持自动识别 Shopee / TikTok 并匹配商铺) *</span>
+              <span class="detected-hint" id="urlDetectHint">等待粘贴链接...</span>
+            </label>
+            <input type="url" id="prodUrl" placeholder="例如：https://shopee.com.my/product/... 或 https://vt.tiktok.com/..." required oninput="autoDetectLink(this.value)" />
+          </div>
+
+          <div class="form-group">
+            <label for="prodStore">所属商铺 *</label>
+            <select id="prodStore" required>
+              <!-- 动态填充 -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="prodName">商品名称 *</label>
+            <input type="text" id="prodName" placeholder="如：Cetaphil Brightening Set #2" required />
+          </div>
+
+          <div class="form-group">
+            <label for="prodOrigPrice">原价 (RM)</label>
+            <input type="number" step="0.01" min="0" id="prodOrigPrice" placeholder="例如：129.00" oninput="updateDiscountPreview()" />
+          </div>
+
+          <div class="form-group">
+            <label for="prodPromoPrice">促销价 (RM) *</label>
+            <input type="number" step="0.01" min="0" id="prodPromoPrice" placeholder="例如：89.90" required oninput="updateDiscountPreview()" />
+          </div>
+
+          <div class="form-group">
+            <label for="prodPromoTag">促销活动标签</label>
+            <input type="text" id="prodPromoTag" list="promoTagPresets" placeholder="如：11.11 大促 / 满RM170减15%" value="限时促销" />
+            <datalist id="promoTagPresets">
+              <option value="11.11 大促特惠"></option>
+              <option value="满 RM170 减 15%"></option>
+              <option value="满 RM130 减 13%"></option>
+              <option value="买一送一 (Buy 1 Free 1)"></option>
+              <option value="限时秒杀 Shocking Sale"></option>
+              <option value="直播间专属券"></option>
+            </datalist>
+          </div>
+
+          <div class="form-group">
+            <label for="prodEndTime">活动截止时间 (倒计时)</label>
+            <input type="datetime-local" id="prodEndTime" />
+          </div>
+
+          <div class="form-group">
+            <label for="prodLinkType">链接精准度类型</label>
+            <select id="prodLinkType">
+              <option value="verified">已验证单品直链 (Product URL)</option>
+              <option value="shop_search">店铺内关键词直达 (Shop Search)</option>
+              <option value="showcase">官方橱窗/直播间直达 (Showcase)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <span style="font-size:12px;color:var(--text-muted);">提示：系统将自动提取每行的 URL 并匹配 Cetaphil / CeraVe / Watsons / TikTok 店铺。</span>
+          <button type="submit" class="btn-blue">
+            一键批量解析并生成卡片
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 3. 筛选与实时搜索栏 -->
+    <section class="filter-bar">
+      <div class="search-box">
+        <span class="search-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" id="searchInput" placeholder="搜索商品名称、促销标签（如 11.11、买一送一）..." oninput="renderProducts()" />
+      </div>
+
+      <div class="filter-selects">
+        <select id="filterStoreSelect" onchange="selectStoreFilter(this.value)">
+          <option value="ALL">全部 6 个商铺</option>
+        </select>
+
+        <select id="filterPlatformSelect" onchange="renderProducts()">
+          <option value="ALL">全部平台</option>
+          <option value="Shopee MY">Shopee MY</option>
+          <option value="TikTok Shop">TikTok Shop</option>
+        </select>
+
+        <select id="filterStatusSelect" onchange="renderProducts()">
+          <option value="ALL">全部状态</option>
+          <option value="active">进行中促销</option>
+          <option value="grabbed">已抢购 / 已锁定</option>
+          <option value="expired">已过期</option>
+        </select>
+
+        <select id="filterLinkTypeSelect" onchange="renderProducts()">
+          <option value="ALL">全部链接类型</option>
+          <option value="verified">已验证单品直链</option>
+          <option value="shop_search">店铺内直达搜索</option>
+          <option value="showcase">TikTok 橱窗直达</option>
+        </select>
+
+        <select id="sortSelect" onchange="renderProducts()">
+          <option value="default">默认排序 (最新/精选)</option>
+          <option value="verified_first">链接精准度：已验证直链优先</option>
+          <option value="discount_desc">折扣力度：从高到低</option>
+          <option value="price_asc">促销价格：从低到高</option>
+          <option value="price_desc">促销价格：从高到低</option>
+          <option value="ending_soon">限时紧迫度：即将截止</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- 4. 商品链接与促销卡片列表 -->
+    <section>
+      <div class="section-header">
+        <div class="section-title">
+          <span>商品链接与促销监控列表</span>
+          <span class="section-badge" id="productCountBadge">0 件商品</span>
+        </div>
+      </div>
+
+      <div class="products-grid" id="productsGrid">
+        <!-- 由 JS 动态渲染商品监控卡片 -->
+      </div>
+    </section>
+  </main>
+
+  <!-- 编辑商品促销模态框 -->
+  <div class="modal-backdrop" id="editModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>编辑商品与促销活动</h3>
+        <button class="btn-secondary btn-sm" onclick="closeModal('editModal')">关闭</button>
+      </div>
+      <form id="editProductForm" onsubmit="saveEditedProduct(event)">
+        <input type="hidden" id="editProdId" />
+        <div class="form-grid">
+          <div class="form-group full-span">
+            <label for="editProdName">商品名称</label>
+            <input type="text" id="editProdName" required />
+          </div>
+          <div class="form-group full-span">
+            <label for="editProdUrl">商品直达链接</label>
+            <input type="url" id="editProdUrl" required />
+          </div>
+          <div class="form-group">
+            <label for="editProdStore">所属商铺</label>
+            <select id="editProdStore"></select>
+          </div>
+          <div class="form-group">
+            <label for="editProdStatus">当前状态</label>
+            <select id="editProdStatus">
+              <option value="active">进行中促销</option>
+              <option value="grabbed">已抢购</option>
+              <option value="expired">已过期</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editOrigPrice">原价 (RM)</label>
+            <input type="number" step="0.01" min="0" id="editOrigPrice" />
+          </div>
+          <div class="form-group">
+            <label for="editPromoPrice">促销价 (RM)</label>
+            <input type="number" step="0.01" min="0" id="editPromoPrice" required />
+          </div>
+          <div class="form-group">
+            <label for="editPromoTag">促销活动标签</label>
+            <input type="text" id="editPromoTag" />
+          </div>
+          <div class="form-group">
+            <label for="editEndTime">活动截止时间</label>
+            <input type="datetime-local" id="editEndTime" />
+          </div>
+          <div class="form-group full-span">
+            <label for="editLinkType">链接精准度标注</label>
+            <select id="editLinkType">
+              <option value="verified">已验证单品直链 (Product URL)</option>
+              <option value="shop_search">店铺内关键词直达 (Shop Search)</option>
+              <option value="showcase">官方橱窗/直播间直达 (Showcase)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-footer" style="justify-content:flex-end; margin-top:20px;">
+          <button type="button" class="btn-secondary" onclick="closeModal('editModal')">取消</button>
+          <button type="submit" class="btn-primary">保存更新</button>
+        </div>
+      </form>
+    </div>
   </div>
 
+  <!-- 批量更新单品链接模态框 -->
+  <div class="modal-backdrop" id="batchLinkUpdateModal">
+    <div class="modal-box" style="max-width:640px;">
+      <div class="modal-header">
+        <h3>批量更新/替换商品直达链接</h3>
+        <button class="btn-secondary btn-sm" onclick="closeModal('batchLinkUpdateModal')">关闭</button>
+      </div>
+      <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px;">
+        您可以直接在下方列表中修改任意商品的直达链接并设为“已验证直链”，或在顶部粘贴“商品关键词 + 新链接”批量自动匹配更新。
+      </p>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <input type="text" id="quickMatchInput" placeholder="快速粘贴：例如 Cetaphil Baby 400ml https://shopee.com.my/..." />
+        <button type="button" class="btn-blue btn-sm" onclick="quickMatchAndUpdateLink()">智能匹配替换</button>
+      </div>
+      <div id="batchLinkListContainer" style="max-height:340px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:4px;">
+        <!-- 动态渲染可编辑链接列表 -->
+      </div>
+      <div class="form-footer" style="justify-content:flex-end; margin-top:16px;">
+        <button type="button" class="btn-secondary" onclick="closeModal('batchLinkUpdateModal')">关闭</button>
+        <button type="button" class="btn-primary" onclick="saveAllBatchLinks()">保存全部链接修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 重置确认模态框 (替代原生 confirm) -->
+  <div class="modal-backdrop" id="resetModal">
+    <div class="modal-box" style="max-width:400px;">
+      <div class="modal-header">
+        <h3>确认重置所有数据？</h3>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:20px;">
+        此操作将清空您手动添加的自定义商品链接，并恢复为系统预置的 6 大马来西亚商铺 36 款默认商品与促销数据。建议重置前先点击“导出 JSON”备份。
+      </p>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn-secondary" onclick="closeModal('resetModal')">取消</button>
+        <button class="btn-danger-soft" onclick="confirmResetData()">确认恢复默认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 通知容器 -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <script>
-    fetch('./prices.json?t=' + Date.now())
-      .then(res => {
-        if (!res.ok) throw new Error('暂无数据');
-        return res.json();
-      })
-      .then(data => {
-        const list = document.getElementById('list');
-        list.innerHTML = '';
-        for (const [name, item] of Object.entries(data)) {
-          const isDrop = item.drop_percent > 0;
-          list.innerHTML += `
-            <div class="card">
-              <div class="info">
-                <h2>${name}</h2>
-                <div class="time">更新：${item.update_time}</div>
+    /* ==========================================================================
+       1. 核心商铺配置与默认预置数据 (42 款实测直达链接与热销大促单品)
+       ========================================================================== */
+    const STORAGE_KEY = 'my_shops_promo_tracker_v3';
+
+    const STORES_DATA = [
+      {
+        id: 'tiktok_shop_1',
+        name: 'TikTok 精选商铺 #1 (ZSpXtJCoC)',
+        platform: 'TikTok Shop',
+        url: 'https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        allProductsUrl: 'https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        promoHighlight: 'TikTok 直播间闪购 · 新客免邮券',
+        keywords: ['zspxtjcoc']
+      },
+      {
+        id: 'tiktok_shop_2',
+        name: 'TikTok 精选商铺 #2 (ZSpXtN84Q)',
+        platform: 'TikTok Shop',
+        url: 'https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        allProductsUrl: 'https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        promoHighlight: '11.11 狂欢满减 · 爆款套装直降',
+        keywords: ['zspxtn84q']
+      },
+      {
+        id: 'tiktok_watsons',
+        name: 'Watsons Malaysia (@watsonsmy)',
+        platform: 'TikTok Shop',
+        url: 'https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I',
+        allProductsUrl: 'https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I',
+        promoHighlight: '屈臣氏 TikTok 官方号 · 直播专属买一送一',
+        keywords: ['watsonsmy', 'tiktok.com/@watsons']
+      },
+      {
+        id: 'shopee_cetaphil',
+        name: 'Cetaphil Official Store (MY)',
+        platform: 'Shopee MY',
+        url: 'https://shopee.com.my/cetaphil.os',
+        shortUrl: 'https://my.shp.ee/ngy4Hpb4',
+        allProductsUrl: 'https://shopee.com.my/cetaphil.os#product_list',
+        promoHighlight: '官方旗舰店 · 满 RM170 减 15% 券',
+        keywords: ['cetaphil.os', 'cetaphil', 'ngy4hpb4']
+      },
+      {
+        id: 'shopee_cerave',
+        name: 'CeraVe Official Store (MY)',
+        platform: 'Shopee MY',
+        url: 'https://shopee.com.my/ceravemy.os',
+        shortUrl: 'https://my.shp.ee/q4a3R5si',
+        allProductsUrl: 'https://shopee.com.my/ceravemy.os#product_list',
+        promoHighlight: '神经酰胺修护专场 · 满 RM130 减 13%',
+        keywords: ['ceravemy.os', 'cerave', 'q4a3r5si']
+      },
+      {
+        id: 'shopee_watsons',
+        name: 'Watsons Malaysia Official Store',
+        platform: 'Shopee MY',
+        url: 'https://shopee.com.my/watsons.my',
+        shortUrl: 'https://my.shp.ee/vpZKAcGS',
+        allProductsUrl: 'https://shopee.com.my/watsons.my#product_list',
+        promoHighlight: '11.11 美妆个护大促 · 买一送一 & 品牌日券',
+        keywords: ['watsons.my', 'watsons', 'vpzkacgs']
+      }
+    ];
+
+    // 生成未来几天的截止时间字符串辅助函数
+    function getFutureISO(hoursFromNow) {
+      const d = new Date(Date.now() + hoursFromNow * 3600 * 1000);
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    const DEFAULT_PRODUCTS = [
+      // ==================== 1. Cetaphil Official Store (Shopee MY) - 9 款 (含 Cetaphil Baby 洗发水全系列) ====================
+      {
+        id: 'preset_cetaphil_baby_1',
+        storeId: 'shopee_cetaphil',
+        name: 'Cetaphil Baby Gentle Wash & Shampoo 400ml (婴儿无泪二合一洗发沐浴露)',
+        url: 'https://shopee.com.my/CETAPHIL-BABY-GENTLE-WASH-SHAMPOO-400ML-i.368170152.15806038963',
+        linkType: 'verified',
+        origPrice: 70.45,
+        promoPrice: 47.90,
+        promoTag: '实测直链 · 满RM170再减15%',
+        endTime: getFutureISO(18),
+        status: 'active'
+      },
+      {
+        id: 'preset_cetaphil_baby_2',
+        storeId: 'shopee_cetaphil',
+        name: 'Cetaphil Baby Gentle Wash & Shampoo (230ml / 400ml / 400ml × 2 双瓶囤货装)',
+        url: 'https://shopee.com.my/CETAPHIL-Baby-Gentle-Wash-Shampoo-(230ml-400ml-400ml-%C3%97-2)-i.23935614.361910647',
+        linkType: 'verified',
+        origPrice: 125.00,
+        promoPrice: 88.90,
+        promoTag: '实测直链 · 双瓶家庭装特惠',
+        endTime: getFutureISO(24),
+        status: 'active'
+      },
+      {
+        id: 'preset_cetaphil_baby_3',
+        storeId: 'shopee_cetaphil',
+        name: 'Cetaphil Baby Shampoo With Natural Chamomile 200ml (洋甘菊温和婴儿洗发水)',
+        url: 'https://shopee.com.my/Cetaphil-Baby-Shampoo-200ml-%E2%80%93-Gentle-Cleansing-Soothes-Scalp-Maintains-Skin-Barrier-i.112778093.1743149418',
+        linkType: 'verified',
+        origPrice: 41.39,
+        promoPrice: 31.04,
+        promoTag: '实测直链 · 25% OFF 限时抢',
+        endTime: getFutureISO(14),
+        status: 'active'
+      },
+      {
+        id: 'preset_cetaphil_baby_4',
+        storeId: 'shopee_cetaphil',
+        name: 'Cetaphil Baby Wash & Shampoo with Organic Calendula 400ml (有机金盏花洗发沐浴露)',
+        url: 'https://shopee.com.my/cetaphil.os?keyword=Baby%20Wash%20Shampoo%20Organic%20Calendula%20400ml',
+        linkType: 'shop_search',
+        origPrice: 74.90,
+        promoPrice: 52.90,
+        promoTag: '官方旗舰店 · 母婴热销榜',
+        endTime: getFutureISO(32),
+        status: 'active'
+      },
+      {
+        id: 'preset_cetaphil_1',
+        storeId: 'shopee_cetaphil',
+        name: 'Cetaphil Gentle Skin Cleanser 1L Twin Pack (温和洁面乳双支家庭装)',
+        url: 'https://shopee.com.my/cetaphil.os?keyword=Gentle%20Skin%20Cleanser%201L%20Twin%20Pack',
+        linkType: 'shop_search',
+        origPrice: 178.00,
+        promoPrice: 129.90,
+        promoTag: '11.11 满RM170减15%',
+        endTime: getFutureISO(28),
+        status: 'active'
+      },
+      {
+        id: 'preset_cetaphil_2',
+        storeId: 'shopee_cetaphil',
+        name: 'Cetaphil Moisturizing Cream 453g Jar (干敏肌深层修护保湿面霜大罐装)',
+        url: 'https://shopee.com.my/cetaphil.os?keyword=Moisturizing%20Cream%20453g',
+        linkType: 'shop_search',
+        origPrice: 112.90,
+        promoPrice: 82.50,
+        promoTag: '年终大促直降 27%',
+        endTime: getFutureISO(19),
+        status: 'active'
+      },
+      {
+        id: 'preset_cetaphil_3',
+        storeId: 'shopee_cetaphil',
+        name: 'Cetaphil Bright Healthy Radiance Brightening Set #2 (透亮焕采日夜护肤套装)',
+        url: 'https://shopee.com.my/cetaphil.os?keyword=Bright%20Healthy%20Radiance%20Brightening%20Set',
+        linkType: 'shop_search',
+        origPrice: 189.00,
+        promoPrice: 145.50,
+        promoTag: '满 RM170 减 15% 券',
+        endTime: getFutureISO(36),
+        status: 'active'
+      },
+      {
+        id: 'preset_cetaphil_4',
+        storeId: 'shopee_cetaphil',
+        name: 'Cetaphil PRO Acne Prone Oil Control Foam Wash 236ml (油痘肌控油洁面泡沫)',
+        url: 'https://shopee.com.my/cetaphil.os?keyword=PRO%20Acne%20Prone%20Oil%20Control%20Foam%20Wash',
+        linkType: 'shop_search',
+        origPrice: 79.90,
+        promoPrice: 59.90,
+        promoTag: '限时秒杀 Shocking Sale',
+        endTime: getFutureISO(11),
+        status: 'active'
+      },
+      {
+        id: 'preset_cetaphil_6',
+        storeId: 'shopee_cetaphil',
+        name: 'Cetaphil UVA/UVB Defense SPF50+ Facial Moisturizer 50ml (高倍保湿防晒隔离霜)',
+        url: 'https://shopee.com.my/cetaphil.os?keyword=UVA%20UVB%20Defense%20SPF50',
+        linkType: 'shop_search',
+        origPrice: 85.00,
+        promoPrice: 63.80,
+        promoTag: '官方旗舰店品牌日',
+        endTime: getFutureISO(52),
+        status: 'active'
+      },
+
+      // ==================== 2. CeraVe Official Store (Shopee MY) - 7 款 ====================
+      {
+        id: 'preset_cerave_1',
+        storeId: 'shopee_cerave',
+        name: 'CeraVe Hydrating Cleanser 473ml Value Size (神经酰胺氨基酸温和洁面乳大容量)',
+        url: 'https://shopee.com.my/ceravemy.os?keyword=Hydrating%20Cleanser%20473ml',
+        linkType: 'shop_search',
+        origPrice: 92.00,
+        promoPrice: 73.60,
+        promoTag: '满 RM130 减 13%',
+        endTime: getFutureISO(32),
+        status: 'active'
+      },
+      {
+        id: 'preset_cerave_2',
+        storeId: 'shopee_cerave',
+        name: 'CeraVe Moisturising Cream 454g Tub (三重神经酰胺修护保湿润肤霜家庭装)',
+        url: 'https://shopee.com.my/ceravemy.os?keyword=Moisturising%20Cream%20454g',
+        linkType: 'shop_search',
+        origPrice: 118.00,
+        promoPrice: 94.40,
+        promoTag: '11.11 爆款囤货价',
+        endTime: getFutureISO(15),
+        status: 'active'
+      },
+      {
+        id: 'preset_cerave_3',
+        storeId: 'shopee_cerave',
+        name: 'CeraVe Oil Control Moisturising Gel-Cream 52ml (混合及油性肌清爽控油啫喱面霜)',
+        url: 'https://shopee.com.my/ceravemy.os?keyword=Oil%20Control%20Moisturising%20Gel-Cream%2052ml',
+        linkType: 'shop_search',
+        origPrice: 76.00,
+        promoPrice: 60.80,
+        promoTag: '油皮本命 · 立减 20%',
+        endTime: getFutureISO(22),
+        status: 'active'
+      },
+      {
+        id: 'preset_cerave_4',
+        storeId: 'shopee_cerave',
+        name: 'CeraVe Foaming Cleanser 473ml (油性及混合肌清爽泡沫洁面啫喱)',
+        url: 'https://shopee.com.my/ceravemy.os?keyword=Foaming%20Cleanser%20473ml',
+        linkType: 'shop_search',
+        origPrice: 92.00,
+        promoPrice: 74.90,
+        promoTag: '控油修护专场特惠',
+        endTime: getFutureISO(26),
+        status: 'active'
+      },
+      {
+        id: 'preset_cerave_5',
+        storeId: 'shopee_cerave',
+        name: 'CeraVe SA Smoothing Cleanser 236ml (水杨酸温和去角质闭口洁面露)',
+        url: 'https://shopee.com.my/ceravemy.os?keyword=SA%20Smoothing%20Cleanser%20236ml',
+        linkType: 'shop_search',
+        origPrice: 69.00,
+        promoPrice: 55.20,
+        promoTag: '20% OFF 限时直降',
+        endTime: getFutureISO(21),
+        status: 'active'
+      },
+      {
+        id: 'preset_cerave_6',
+        storeId: 'shopee_cerave',
+        name: 'CeraVe Daily Moisturising Lotion 473ml (清爽型全身及面部保湿乳液)',
+        url: 'https://shopee.com.my/ceravemy.os?keyword=Daily%20Moisturising%20Lotion%20473ml',
+        linkType: 'shop_search',
+        origPrice: 98.00,
+        promoPrice: 78.40,
+        promoTag: '满 RM130 减 13%',
+        endTime: getFutureISO(48),
+        status: 'active'
+      },
+      {
+        id: 'preset_cerave_7',
+        storeId: 'shopee_cerave',
+        name: 'CeraVe Resurfacing Retinol Serum 30ml (视黄醇A醇淡印毛孔修护精华)',
+        url: 'https://shopee.com.my/ceravemy.os?keyword=Resurfacing%20Retinol%20Serum%2030ml',
+        linkType: 'shop_search',
+        origPrice: 109.00,
+        promoPrice: 87.20,
+        promoTag: '早C晚A星品礼遇',
+        endTime: getFutureISO(39),
+        status: 'active'
+      },
+
+      // ==================== 3. Watsons Malaysia Official Store (Shopee MY) - 8 款 ====================
+      {
+        id: 'preset_watsons_baby_1',
+        storeId: 'shopee_watsons',
+        name: 'Cetaphil Baby Gentle Wash & Shampoo 50ml x 2 Travel Pack (屈臣氏便携试用双支装)',
+        url: 'https://shopee.com.my/watsons.my?keyword=Cetaphil%20Baby%20Gentle%20Wash%20Shampoo%2050ml',
+        linkType: 'shop_search',
+        origPrice: 28.90,
+        promoPrice: 22.68,
+        promoTag: '屈臣氏官方 · 便携装特惠',
+        endTime: getFutureISO(17),
+        status: 'active'
+      },
+      {
+        id: 'preset_watsons_1',
+        storeId: 'shopee_watsons',
+        name: 'Biore UV Aqua Rich Watery Essence SPF50+ PA++++ 50g Twin Pack (水感防晒双支装)',
+        url: 'https://shopee.com.my/watsons.my?keyword=Biore%20UV%20Aqua%20Rich%20Watery%20Essence%20Twin',
+        linkType: 'shop_search',
+        origPrice: 75.80,
+        promoPrice: 49.90,
+        promoTag: '11.11 屈臣氏防晒榜首',
+        endTime: getFutureISO(14),
+        status: 'active'
+      },
+      {
+        id: 'preset_watsons_2',
+        storeId: 'shopee_watsons',
+        name: 'Garnier Micellar Cleansing Water Pink 400ml [Buy 1 Free 1] (粉水卸妆水买1送1)',
+        url: 'https://shopee.com.my/watsons.my?keyword=Garnier%20Micellar%20Cleansing%20Water%20400ml',
+        linkType: 'shop_search',
+        origPrice: 73.80,
+        promoPrice: 36.90,
+        promoTag: '买1送1 (50% OFF)',
+        endTime: getFutureISO(10),
+        status: 'active'
+      },
+      {
+        id: 'preset_watsons_3',
+        storeId: 'shopee_watsons',
+        name: 'COSRX Advanced Snail 96 Mucin Power Essence 100ml (蜗牛原液修护精华)',
+        url: 'https://shopee.com.my/watsons.my?keyword=COSRX%20Advanced%20Snail%2096%20Mucin',
+        linkType: 'shop_search',
+        origPrice: 79.00,
+        promoPrice: 48.50,
+        promoTag: '韩系护肤狂欢直降',
+        endTime: getFutureISO(24),
+        status: 'active'
+      },
+      {
+        id: 'preset_watsons_4',
+        storeId: 'shopee_watsons',
+        name: 'Hada Labo Hydrating Lotion Light / Rich 170ml (肌研极润保湿化妆水)',
+        url: 'https://shopee.com.my/watsons.my?keyword=Hada%20Labo%20Hydrating%20Lotion%20170ml',
+        linkType: 'shop_search',
+        origPrice: 64.90,
+        promoPrice: 45.90,
+        promoTag: '满 RM120 享额外 15% 券',
+        endTime: getFutureISO(33),
+        status: 'active'
+      },
+      {
+        id: 'preset_watsons_5',
+        storeId: 'shopee_watsons',
+        name: 'Dove Deeply Nourishing Body Wash 1L Twin Pack (多芬深层滋养沐浴露 1L 双瓶装)',
+        url: 'https://shopee.com.my/watsons.my?keyword=Dove%20Deeply%20Nourishing%20Body%20Wash%201L',
+        linkType: 'shop_search',
+        origPrice: 49.80,
+        promoPrice: 31.90,
+        promoTag: '家庭日用囤货超值装',
+        endTime: getFutureISO(20),
+        status: 'active'
+      },
+      {
+        id: 'preset_watsons_6',
+        storeId: 'shopee_watsons',
+        name: 'Blackmores Bio C 1000mg 150 Tablets Value Pack (高浓度维C保健家庭装)',
+        url: 'https://shopee.com.my/watsons.my?keyword=Blackmores%20Bio%20C%201000mg%20150',
+        linkType: 'shop_search',
+        origPrice: 138.00,
+        promoPrice: 89.90,
+        promoTag: '保健专场立省 RM48',
+        endTime: getFutureISO(41),
+        status: 'active'
+      },
+      {
+        id: 'preset_watsons_7',
+        storeId: 'shopee_watsons',
+        name: 'Watsons Treatment Wax Hair Mask 500ml [Buy 1 Free 1] (焗油修护发膜买一送一)',
+        url: 'https://shopee.com.my/watsons.my?keyword=Watsons%20Treatment%20Wax%20500ml',
+        linkType: 'shop_search',
+        origPrice: 39.80,
+        promoPrice: 19.90,
+        promoTag: '买一送一 · 限时抢购',
+        endTime: getFutureISO(8),
+        status: 'active'
+      },
+
+      // ==================== 4. Watsons Malaysia (@watsonsmy TikTok Shop) - 6 款 ====================
+      {
+        id: 'preset_tt_watsons_1',
+        storeId: 'tiktok_watsons',
+        name: 'Maybelline Superstay Vinyl Ink Liquid Lipstick (锁色镜面唇釉 TikTok 爆款色号)',
+        url: 'https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I',
+        linkType: 'showcase',
+        origPrice: 49.90,
+        promoPrice: 32.90,
+        promoTag: 'TikTok 直播间专属价',
+        endTime: getFutureISO(7),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt_watsons_2',
+        storeId: 'tiktok_watsons',
+        name: 'Skintific 5X Ceramide Barrier Repair Moisture Gel 30g (神经酰胺修护面霜)',
+        url: 'https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I',
+        linkType: 'showcase',
+        origPrice: 69.00,
+        promoPrice: 43.90,
+        promoTag: '11.11 直播闪购直降',
+        endTime: getFutureISO(13),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt_watsons_3',
+        storeId: 'tiktok_watsons',
+        name: 'Mediheal Tea Tree Essential Sheet Mask 10s Box (茶树舒缓控油面膜 10片盒装)',
+        url: 'https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I',
+        linkType: 'showcase',
+        origPrice: 69.90,
+        promoPrice: 34.95,
+        promoTag: '半价秒杀 50% OFF',
+        endTime: getFutureISO(16),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt_watsons_4',
+        storeId: 'tiktok_watsons',
+        name: 'L\'Oreal Paris Extraordinary Hair Oil 100ml (奇焕润发精油小金瓶)',
+        url: 'https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I',
+        linkType: 'showcase',
+        origPrice: 54.90,
+        promoPrice: 36.50,
+        promoTag: 'TikTok 免邮 + 直播券',
+        endTime: getFutureISO(22),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt_watsons_5',
+        storeId: 'tiktok_watsons',
+        name: 'Eucerin ProACNE Solution Triple Effect Serum 40ml (净痘淡印三效精华)',
+        url: 'https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I',
+        linkType: 'showcase',
+        origPrice: 119.00,
+        promoPrice: 86.00,
+        promoTag: '满 RM80 减 RM15 平台券',
+        endTime: getFutureISO(29),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt_watsons_6',
+        storeId: 'tiktok_watsons',
+        name: 'Kinohimitsu Collagen Diamond 5300mg 16 Bottles (胶原蛋白饮礼盒装)',
+        url: 'https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I',
+        linkType: 'showcase',
+        origPrice: 169.00,
+        promoPrice: 109.00,
+        promoTag: '年终内服美容盛典',
+        endTime: getFutureISO(35),
+        status: 'active'
+      },
+
+      // ==================== 5. TikTok 精选商铺 #1 (ZSpXtJCoC) - 6 款 ====================
+      {
+        id: 'preset_tt1_1',
+        storeId: 'tiktok_shop_1',
+        name: 'TikTok 精选商铺 #1 · 爆款氨基酸洁面与保湿水乳三件套礼盒',
+        url: 'https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 139.00,
+        promoPrice: 89.00,
+        promoTag: '11.11 新客专享立减 RM50',
+        endTime: getFutureISO(12),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt1_2',
+        storeId: 'tiktok_shop_1',
+        name: 'TikTok 精选商铺 #1 · 清爽控油防晒喷雾 + 晒后修护芦荟胶组合',
+        url: 'https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 68.00,
+        promoPrice: 39.90,
+        promoTag: '限时闪购 41% OFF',
+        endTime: getFutureISO(9),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt1_3',
+        storeId: 'tiktok_shop_1',
+        name: 'TikTok 精选商铺 #1 · 烟酰胺身体美白乳液 500ml 家庭装 [买1送1]',
+        url: 'https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 78.00,
+        promoPrice: 39.00,
+        promoTag: '买1送1 · 直播间专享',
+        endTime: getFutureISO(18),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt1_4',
+        storeId: 'tiktok_shop_1',
+        name: 'TikTok 精选商铺 #1 · 玻尿酸深层补水睡眠面膜 20条便携装',
+        url: 'https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 55.00,
+        promoPrice: 29.90,
+        promoTag: 'TikTok 达人推荐爆款',
+        endTime: getFutureISO(27),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt1_5',
+        storeId: 'tiktok_shop_1',
+        name: 'TikTok 精选商铺 #1 · 敏感肌积雪草舒缓修护喷雾 150ml 双瓶装',
+        url: 'https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 64.00,
+        promoPrice: 42.00,
+        promoTag: '满 RM60 享免邮 + 9折券',
+        endTime: getFutureISO(34),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt1_6',
+        storeId: 'tiktok_shop_1',
+        name: 'TikTok 精选商铺 #1 · 便携式随身补妆定妆散粉 + 粉扑套装',
+        url: 'https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 49.00,
+        promoPrice: 27.50,
+        promoTag: '年终大促清仓特惠',
+        endTime: getFutureISO(45),
+        status: 'active'
+      },
+
+      // ==================== 6. TikTok 精选商铺 #2 (ZSpXtN84Q) - 6 款 ====================
+      {
+        id: 'preset_tt2_1',
+        storeId: 'tiktok_shop_2',
+        name: 'TikTok 精选商铺 #2 · 神经酰胺修护屏障特惠家庭套装 (洁面+面霜+精华)',
+        url: 'https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 158.00,
+        promoPrice: 99.00,
+        promoTag: '官方补贴直降 RM59',
+        endTime: getFutureISO(15),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt2_2',
+        storeId: 'tiktok_shop_2',
+        name: 'TikTok 精选商铺 #2 · 控油蓬松无硅油洗发水 + 护发素 750ml 组合',
+        url: 'https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 88.00,
+        promoPrice: 54.90,
+        promoTag: '11.11 个护热销榜单',
+        endTime: getFutureISO(20),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt2_3',
+        storeId: 'tiktok_shop_2',
+        name: 'TikTok 精选商铺 #2 · 维C早间提亮抗氧化精华液 30ml 双支装',
+        url: 'https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 110.00,
+        promoPrice: 68.00,
+        promoTag: '限时秒杀 38% OFF',
+        endTime: getFutureISO(11),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt2_4',
+        storeId: 'tiktok_shop_2',
+        name: 'TikTok 精选商铺 #2 · 温和净澈眼唇卸妆液 250ml [买1送1]',
+        url: 'https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 52.00,
+        promoPrice: 26.00,
+        promoTag: '买一送一 (50% OFF)',
+        endTime: getFutureISO(25),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt2_5',
+        storeId: 'tiktok_shop_2',
+        name: 'TikTok 精选商铺 #2 · 多效修护润唇膏 + 夜间唇膜滋润礼盒',
+        url: 'https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 45.00,
+        promoPrice: 25.90,
+        promoTag: '直播间加购立减',
+        endTime: getFutureISO(31),
+        status: 'active'
+      },
+      {
+        id: 'preset_tt2_6',
+        storeId: 'tiktok_shop_2',
+        name: 'TikTok 精选商铺 #2 · 植萃香氛沐浴露 1000ml 家庭装 + 补充装',
+        url: 'https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180',
+        linkType: 'showcase',
+        origPrice: 69.00,
+        promoPrice: 44.50,
+        promoTag: '满 RM80 减 RM12 店铺券',
+        endTime: getFutureISO(40),
+        status: 'active'
+      }
+    ];
+
+    let products = [];
+    let activeStoreFilter = 'ALL';
+
+    /* ==========================================================================
+       2. 初始化与本地存储管理
+       ========================================================================== */
+    function initApp() {
+      loadFromStorage();
+      populateStoreSelects();
+      document.getElementById('prodEndTime').value = getFutureISO(24);
+      renderStores();
+      renderProducts();
+      setInterval(updateCountdowns, 1000);
+    }
+
+    function loadFromStorage() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            products = parsed;
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('读取本地缓存失败:', e);
+      }
+      products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+      saveToStorage();
+    }
+
+    function syncVerifiedLinksCatalog() {
+      const presetMap = new Map(DEFAULT_PRODUCTS.map(p => [p.id, p]));
+      let updatedCount = 0;
+      let addedCount = 0;
+
+      // 1. 升级已有预设商品的链接与促销信息
+      products.forEach(item => {
+        if (presetMap.has(item.id)) {
+          const latest = presetMap.get(item.id);
+          item.url = latest.url;
+          item.linkType = latest.linkType;
+          item.origPrice = latest.origPrice;
+          item.promoPrice = latest.promoPrice;
+          item.promoTag = latest.promoTag;
+          updatedCount++;
+          presetMap.delete(item.id);
+        }
+      });
+
+      // 2. 补充新增商品（含 Cetaphil Baby 洗发水系列）
+      presetMap.forEach(newPreset => {
+        products.unshift(JSON.parse(JSON.stringify(newPreset)));
+        addedCount++;
+      });
+
+      saveToStorage();
+      renderStores();
+      renderProducts();
+      showToast(`链接库更新完成：升级 ${updatedCount} 条链接，新增 ${addedCount} 款热销单品！`);
+    }
+
+    function saveToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+      } catch (e) {
+        showToast('本地存储空间不足，建议导出 JSON 备份');
+      }
+    }
+
+    function populateStoreSelects() {
+      const selectIds = ['prodStore', 'batchDefaultStore', 'editProdStore'];
+      selectIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = STORES_DATA.map(s =>
+          `<option value="${s.id}">[${s.platform}] ${s.name}</option>`
+        ).join('');
+      });
+
+      const filterEl = document.getElementById('filterStoreSelect');
+      filterEl.innerHTML = `<option value="ALL">全部 6 个商铺</option>` +
+        STORES_DATA.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    /* ==========================================================================
+       3. 渲染 6 个商铺导航卡片
+       ========================================================================== */
+    function renderStores() {
+      const grid = document.getElementById('storesGrid');
+      grid.innerHTML = STORES_DATA.map(store => {
+        const isShopee = store.platform === 'Shopee MY';
+        const isFiltered = activeStoreFilter === store.id;
+        const count = products.filter(p => p.storeId === store.id).length;
+
+        return `
+          <div class="store-card ${isFiltered ? 'active-filter' : ''}" onclick="selectStoreFilter('${store.id}')" style="cursor:pointer;">
+            <div>
+              <div class="store-top">
+                <span class="store-platform-tag ${isShopee ? 'platform-shopee' : 'platform-tiktok'}">
+                  ${store.platform}
+                </span>
+                <span class="store-promo-pill">${store.promoHighlight}</span>
               </div>
-              <div class="prices">
-                <div>
-                  <span class="current">RM${item.price.toFixed(2)}</span>
-                  <span class="old">RM${item.old_price.toFixed(2)}</span>
-                </div>
-                <div class="badge ${isDrop ? '' : 'flat'}">
-                  ${isDrop ? `🔥 直降 ${item.drop_percent}% (省 RM${item.drop_amount.toFixed(2)})` : '价格平稳'}
-                </div>
+              <div class="store-info">
+                <h3>${store.name}</h3>
+                <p>已收录监控商品：<strong>${count}</strong> 件 · 点击卡片可筛选本店商品</p>
               </div>
             </div>
-          `;
+            <div class="store-actions" onclick="event.stopPropagation()">
+              <a href="${store.url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                进入原商铺
+              </a>
+              <a href="${store.allProductsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-soft btn-sm">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                全部商品页直达
+              </a>
+              <button class="btn-secondary btn-sm" onclick="copyText('${store.url}', '已复制商铺链接')">
+                复制店链
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectStoreFilter(storeId) {
+      if (activeStoreFilter === storeId && storeId !== 'ALL') {
+        activeStoreFilter = 'ALL';
+      } else {
+        activeStoreFilter = storeId;
+      }
+      document.getElementById('filterStoreSelect').value = activeStoreFilter;
+      document.getElementById('clearStoreFilterBtn').style.display = activeStoreFilter === 'ALL' ? 'none' : 'inline-flex';
+      renderStores();
+      renderProducts();
+    }
+
+    /* ==========================================================================
+       4. 智能识别链接与促销添加逻辑
+       ========================================================================== */
+    function switchAddTab(tab) {
+      const isSingle = tab === 'single';
+      document.getElementById('singleAddForm').style.display = isSingle ? 'block' : 'none';
+      document.getElementById('batchAddForm').style.display = isSingle ? 'none' : 'block';
+      document.getElementById('tabSingleBtn').classList.toggle('active', isSingle);
+      document.getElementById('tabBatchBtn').classList.toggle('active', !isSingle);
+    }
+
+    function detectStoreFromUrl(url) {
+      const lower = url.toLowerCase();
+      for (const store of STORES_DATA) {
+        if (store.keywords.some(kw => lower.includes(kw))) {
+          return store;
         }
-      })
-      .catch(() => {
-        document.getElementById('list').innerHTML = '<p>暂无价格记录，请先在 GitHub Actions 运行一次监控脚本。</p>';
+      }
+      if (lower.includes('shopee.com.my') || lower.includes('shp.ee')) {
+        return STORES_DATA.find(s => s.id === 'shopee_watsons');
+      }
+      if (lower.includes('tiktok.com')) {
+        return STORES_DATA.find(s => s.id === 'tiktok_shop_1');
+      }
+      return null;
+    }
+
+    function autoDetectLink(url) {
+      const hintEl = document.getElementById('urlDetectHint');
+      if (!url.trim()) {
+        hintEl.textContent = '等待粘贴链接...';
+        return;
+      }
+      const matched = detectStoreFromUrl(url);
+      if (matched) {
+        document.getElementById('prodStore').value = matched.id;
+        hintEl.textContent = `✓ 已自动匹配：${matched.platform} · ${matched.name}`;
+      } else {
+        hintEl.textContent = '未识别出特定店铺域名，请手动选择所属商铺';
+      }
+      const linkTypeEl = document.getElementById('prodLinkType');
+      if (linkTypeEl) {
+        if (url.includes('-i.') || url.includes('/product/')) {
+          linkTypeEl.value = 'verified';
+        } else if (url.includes('tiktok.com')) {
+          linkTypeEl.value = 'showcase';
+        } else if (url.includes('?keyword=')) {
+          linkTypeEl.value = 'shop_search';
+        }
+      }
+    }
+
+    function calcDiscountPercent(orig, promo) {
+      const o = parseFloat(orig);
+      const p = parseFloat(promo);
+      if (!o || o <= p || p < 0) return 0;
+      return Math.round(((o - p) / o) * 100);
+    }
+
+    function updateDiscountPreview() {
+      const orig = document.getElementById('prodOrigPrice').value;
+      const promo = document.getElementById('prodPromoPrice').value;
+      const box = document.getElementById('discountPreviewBox');
+      const discount = calcDiscountPercent(orig, promo);
+      if (discount > 0) {
+        const saved = (parseFloat(orig) - parseFloat(promo)).toFixed(2);
+        box.innerHTML = `实时计算折扣：<strong>${discount}% OFF</strong>（立省 RM ${saved}）`;
+      } else if (promo) {
+        box.innerHTML = `当前促销价：<strong>RM ${parseFloat(promo).toFixed(2)}</strong>`;
+      } else {
+        box.textContent = '输入原价与促销价将自动计算折扣力度';
+      }
+    }
+
+    function handleSingleAdd(e) {
+      e.preventDefault();
+      const url = document.getElementById('prodUrl').value.trim();
+      const storeId = document.getElementById('prodStore').value;
+      const name = document.getElementById('prodName').value.trim();
+      const origPrice = parseFloat(document.getElementById('prodOrigPrice').value) || 0;
+      const promoPrice = parseFloat(document.getElementById('prodPromoPrice').value) || 0;
+      const promoTag = document.getElementById('prodPromoTag').value.trim() || '限时特惠';
+      const endTime = document.getElementById('prodEndTime').value;
+      const linkType = document.getElementById('prodLinkType') ? document.getElementById('prodLinkType').value : 'verified';
+
+      const newItem = {
+        id: 'prod_' + Date.now(),
+        storeId,
+        name,
+        url,
+        linkType,
+        origPrice,
+        promoPrice,
+        promoTag,
+        endTime,
+        status: 'active'
+      };
+
+      products.unshift(newItem);
+      saveToStorage();
+      renderStores();
+      renderProducts();
+
+      e.target.reset();
+      document.getElementById('prodEndTime').value = getFutureISO(24);
+      document.getElementById('urlDetectHint').textContent = '等待粘贴链接...';
+      updateDiscountPreview();
+      showToast('已成功添加商品并更新促销卡片！');
+    }
+
+    function handleBatchAdd(e) {
+      e.preventDefault();
+      const rawText = document.getElementById('batchLinksText').value;
+      const defaultStore = document.getElementById('batchDefaultStore').value;
+      const tag = document.getElementById('batchPromoTag').value.trim() || '批量上新特惠';
+
+      const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const urlRegex = /(https?:\/\/[^\s]+)/i;
+      let addedCount = 0;
+
+      lines.forEach((line, idx) => {
+        const match = line.match(urlRegex);
+        if (!match) return;
+        const url = match[1];
+        const titlePart = line.replace(url, '').trim();
+        const matchedStore = detectStoreFromUrl(url);
+        const storeId = matchedStore ? matchedStore.id : defaultStore;
+        const storeObj = STORES_DATA.find(s => s.id === storeId);
+
+        products.unshift({
+          id: `batch_${Date.now()}_${idx}`,
+          storeId,
+          name: titlePart || `${storeObj ? storeObj.name : '精选商铺'} 商品链接 #${products.length + 1}`,
+          url,
+          linkType: url.includes('-i.') || url.includes('/product/') ? 'verified' : (url.includes('tiktok.com') ? 'showcase' : 'shop_search'),
+          origPrice: 0,
+          promoPrice: 0,
+          promoTag: tag,
+          endTime: getFutureISO(48),
+          status: 'active'
+        });
+        addedCount++;
       });
+
+      if (addedCount === 0) {
+        showToast('未检测到有效 http/https 链接，请检查格式');
+        return;
+      }
+
+      saveToStorage();
+      renderStores();
+      renderProducts();
+      e.target.reset();
+      showToast(`成功批量解析并生成 ${addedCount} 张商品卡片！`);
+    }
+
+    /* ==========================================================================
+       5. 渲染商品监控卡片与倒计时
+       ========================================================================== */
+    function formatRemainingTime(endTimeStr) {
+      if (!endTimeStr) return '长期有效';
+      const diff = new Date(endTimeStr).getTime() - Date.now();
+      if (diff <= 0) return '活动已截止';
+      const hrs = Math.floor(diff / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      return `${hrs}时 ${String(mins).padStart(2, '0')}分 ${String(secs).padStart(2, '0')}秒`;
+    }
+
+    function updateCountdowns() {
+      document.querySelectorAll('[data-endtime]').forEach(el => {
+        const end = el.getAttribute('data-endtime');
+        el.textContent = formatRemainingTime(end);
+      });
+    }
+
+    function renderProducts() {
+      const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+      const platformFilter = document.getElementById('filterPlatformSelect').value;
+      const statusFilter = document.getElementById('filterStatusSelect').value;
+      const linkTypeFilter = document.getElementById('filterLinkTypeSelect') ? document.getElementById('filterLinkTypeSelect').value : 'ALL';
+      const sortBy = document.getElementById('sortSelect') ? document.getElementById('sortSelect').value : 'default';
+
+      const filtered = products.filter(item => {
+        const store = STORES_DATA.find(s => s.id === item.storeId) || STORES_DATA[0];
+        const currentLinkType = item.linkType || (item.url.includes('-i.') ? 'verified' : (item.url.includes('tiktok.com') ? 'showcase' : 'shop_search'));
+        if (activeStoreFilter !== 'ALL' && item.storeId !== activeStoreFilter) return false;
+        if (platformFilter !== 'ALL' && store.platform !== platformFilter) return false;
+        if (statusFilter !== 'ALL' && item.status !== statusFilter) return false;
+        if (linkTypeFilter !== 'ALL' && currentLinkType !== linkTypeFilter) return false;
+        if (keyword) {
+          const hay = `${item.name} ${item.promoTag} ${store.name} ${item.url}`.toLowerCase();
+          if (!hay.includes(keyword)) return false;
+        }
+        return true;
+      });
+
+      if (sortBy === 'verified_first') {
+        const rank = { verified: 1, shop_search: 2, showcase: 3 };
+        filtered.sort((a, b) => (rank[a.linkType] || 9) - (rank[b.linkType] || 9));
+      } else if (sortBy === 'discount_desc') {
+        filtered.sort((a, b) => calcDiscountPercent(b.origPrice, b.promoPrice) - calcDiscountPercent(a.origPrice, a.promoPrice));
+      } else if (sortBy === 'price_asc') {
+        filtered.sort((a, b) => (parseFloat(a.promoPrice) || 999999) - (parseFloat(b.promoPrice) || 999999));
+      } else if (sortBy === 'price_desc') {
+        filtered.sort((a, b) => (parseFloat(b.promoPrice) || 0) - (parseFloat(a.promoPrice) || 0));
+      } else if (sortBy === 'ending_soon') {
+        filtered.sort((a, b) => {
+          const ta = a.endTime ? new Date(a.endTime).getTime() : Infinity;
+          const tb = b.endTime ? new Date(b.endTime).getTime() : Infinity;
+          return ta - tb;
+        });
+      }
+
+      document.getElementById('productCountBadge').textContent = `共 ${filtered.length} 件商品`;
+      const grid = document.getElementById('productsGrid');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <p style="font-size:15px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">暂无符合当前筛选条件的商品链接</p>
+            <p style="font-size:13px;">您可以切换上方商铺筛选，或在控制面板粘贴新的商品链接。</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => {
+        const store = STORES_DATA.find(s => s.id === item.storeId) || STORES_DATA[0];
+        const isShopee = store.platform === 'Shopee MY';
+        const discount = calcDiscountPercent(item.origPrice, item.promoPrice);
+
+        const statusMap = {
+          active: { label: '促销进行中', cls: 'status-active' },
+          grabbed: { label: '已抢购锁定', cls: 'status-grabbed' },
+          expired: { label: '已过期', cls: 'status-expired' }
+        };
+        const st = statusMap[item.status] || statusMap.active;
+
+        const currentLinkType = item.linkType || (item.url.includes('-i.') ? 'verified' : (item.url.includes('tiktok.com') ? 'showcase' : 'shop_search'));
+        const linkBadgeMap = {
+          verified: { label: '✓ 已验证单品直链', cls: 'link-verified' },
+          shop_search: { label: '🔍 店铺内直达搜索', cls: 'link-shop-search' },
+          showcase: { label: '🛍️ TikTok 橱窗直达', cls: 'link-showcase' }
+        };
+        const lb = linkBadgeMap[currentLinkType] || linkBadgeMap.shop_search;
+
+        const priceHtml = item.promoPrice > 0
+          ? `<span class="promo-price">RM ${Number(item.promoPrice).toFixed(2)}</span>
+             ${item.origPrice > item.promoPrice ? `<span class="orig-price">RM ${Number(item.origPrice).toFixed(2)}</span>` : ''}`
+          : `<span class="promo-price" style="font-size:15px;color:var(--accent-primary);">查看实时活动价</span>`;
+
+        return `
+          <article class="product-card status-${item.status}">
+            <div>
+              <div class="card-badges">
+                <div class="badge-group">
+                  <span class="store-platform-tag ${isShopee ? 'platform-shopee' : 'platform-tiktok'}">${store.platform}</span>
+                  <span class="link-type-badge ${lb.cls}">${lb.label}</span>
+                  ${discount > 0 ? `<span class="discount-badge">-${discount}%</span>` : ''}
+                </div>
+                <span class="status-pill ${st.cls}">${st.label}</span>
+              </div>
+
+              <h4 class="product-title" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</h4>
+              <div class="product-store-name" style="justify-content:space-between;">
+                <span>店铺：${escapeHtml(store.name)}</span>
+                <span class="promo-tag" style="font-size:10.5px;">${escapeHtml(item.promoTag)}</span>
+              </div>
+
+              <div class="price-box">
+                ${priceHtml}
+              </div>
+
+              <div class="countdown-row">
+                <span>距离活动结束：</span>
+                <span class="countdown-timer" data-endtime="${item.endTime || ''}">${formatRemainingTime(item.endTime)}</span>
+              </div>
+
+              <div class="product-url-preview" title="${escapeHtml(item.url)}">
+                ${escapeHtml(item.url)}
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button class="btn-soft btn-sm" onclick="copyText('${escapeAttr(item.url)}', '已复制商品推广/购买链接')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                复制链接
+              </button>
+              <a href="${escapeAttr(item.url)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                直达抢购
+              </a>
+
+              <div class="card-sub-actions">
+                <button class="btn-secondary" onclick="openEditModal('${item.id}')">更新链接 / 促销</button>
+                <button class="btn-secondary" onclick="cycleStatus('${item.id}')">切换状态</button>
+                <button class="btn-danger-soft" onclick="deleteProduct('${item.id}')">删除</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    /* ==========================================================================
+       6. 商品卡片操作：编辑、状态切换、删除、复制、导入导出、重置
+       ========================================================================== */
+    function cycleStatus(id) {
+      const item = products.find(p => p.id === id);
+      if (!item) return;
+      const order = ['active', 'grabbed', 'expired'];
+      const next = order[(order.indexOf(item.status) + 1) % order.length];
+      item.status = next;
+      saveToStorage();
+      renderProducts();
+      const names = { active: '进行中促销', grabbed: '已抢购锁定', expired: '已过期' };
+      showToast(`状态已更新为：${names[next]}`);
+    }
+
+    function deleteProduct(id) {
+      products = products.filter(p => p.id !== id);
+      saveToStorage();
+      renderStores();
+      renderProducts();
+      showToast('已删除该商品监控卡片');
+    }
+
+    function openEditModal(id) {
+      const item = products.find(p => p.id === id);
+      if (!item) return;
+      document.getElementById('editProdId').value = item.id;
+      document.getElementById('editProdName').value = item.name;
+      document.getElementById('editProdUrl').value = item.url;
+      document.getElementById('editProdStore').value = item.storeId;
+      document.getElementById('editProdStatus').value = item.status;
+      document.getElementById('editOrigPrice').value = item.origPrice || '';
+      document.getElementById('editPromoPrice').value = item.promoPrice || '';
+      document.getElementById('editPromoTag').value = item.promoTag || '';
+      document.getElementById('editEndTime').value = item.endTime || '';
+      if (document.getElementById('editLinkType')) {
+        document.getElementById('editLinkType').value = item.linkType || (item.url.includes('-i.') ? 'verified' : (item.url.includes('tiktok.com') ? 'showcase' : 'shop_search'));
+      }
+      document.getElementById('editModal').classList.add('open');
+    }
+
+    function saveEditedProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById('editProdId').value;
+      const item = products.find(p => p.id === id);
+      if (!item) return;
+
+      item.name = document.getElementById('editProdName').value.trim();
+      item.url = document.getElementById('editProdUrl').value.trim();
+      item.storeId = document.getElementById('editProdStore').value;
+      item.status = document.getElementById('editProdStatus').value;
+      item.origPrice = parseFloat(document.getElementById('editOrigPrice').value) || 0;
+      item.promoPrice = parseFloat(document.getElementById('editPromoPrice').value) || 0;
+      item.promoTag = document.getElementById('editPromoTag').value.trim();
+      item.endTime = document.getElementById('editEndTime').value;
+      if (document.getElementById('editLinkType')) {
+        item.linkType = document.getElementById('editLinkType').value;
+      }
+
+      saveToStorage();
+      renderStores();
+      renderProducts();
+      closeModal('editModal');
+      showToast('商品链接与促销信息已更新！');
+    }
+
+    function openBatchLinkUpdateModal() {
+      const container = document.getElementById('batchLinkListContainer');
+      container.innerHTML = products.map(item => `
+        <div style="background:var(--bg-app); padding:10px 12px; border-radius:var(--radius-md); border:1px solid var(--border-light);">
+          <div style="font-size:12.5px; font-weight:700; margin-bottom:6px; color:var(--text-primary);">
+            ${escapeHtml(item.name)}
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="url" data-batch-url-id="${item.id}" value="${escapeAttr(item.url)}" style="font-size:12px; padding:7px 10px;" />
+            <select data-batch-type-id="${item.id}" style="width:140px; font-size:12px; padding:7px 8px;">
+              <option value="verified" ${(item.linkType === 'verified') ? 'selected' : ''}>✓ 已验证直链</option>
+              <option value="shop_search" ${(item.linkType === 'shop_search') ? 'selected' : ''}>🔍 店铺内搜索</option>
+              <option value="showcase" ${(item.linkType === 'showcase') ? 'selected' : ''}>🛍️ 橱窗直达</option>
+            </select>
+          </div>
+        </div>
+      `).join('');
+      document.getElementById('batchLinkUpdateModal').classList.add('open');
+    }
+
+    function quickMatchAndUpdateLink() {
+      const raw = document.getElementById('quickMatchInput').value.trim();
+      const urlMatch = raw.match(/(https?:\/\/[^\s]+)/i);
+      if (!urlMatch) {
+        showToast('请输入包含 http/https 的链接');
+        return;
+      }
+      const newUrl = urlMatch[1];
+      const kw = raw.replace(newUrl, '').trim().toLowerCase();
+      if (!kw) {
+        showToast('请在链接前加上商品关键词（如 Baby 400ml）以便自动匹配');
+        return;
+      }
+      const target = products.find(p => p.name.toLowerCase().includes(kw));
+      if (!target) {
+        showToast(`未找到包含关键词“${kw}”的商品`);
+        return;
+      }
+      const inputEl = document.querySelector(`[data-batch-url-id="${target.id}"]`);
+      const selectEl = document.querySelector(`[data-batch-type-id="${target.id}"]`);
+      if (inputEl) inputEl.value = newUrl;
+      if (selectEl) selectEl.value = 'verified';
+      document.getElementById('quickMatchInput').value = '';
+      showToast(`已匹配到“${target.name.slice(0, 22)}...”，点击保存即可生效！`);
+    }
+
+    function saveAllBatchLinks() {
+      let changed = 0;
+      products.forEach(item => {
+        const inputEl = document.querySelector(`[data-batch-url-id="${item.id}"]`);
+        const selectEl = document.querySelector(`[data-batch-type-id="${item.id}"]`);
+        if (inputEl && inputEl.value.trim()) {
+          if (item.url !== inputEl.value.trim() || item.linkType !== selectEl.value) {
+            item.url = inputEl.value.trim();
+            item.linkType = selectEl.value;
+            changed++;
+          }
+        }
+      });
+      saveToStorage();
+      renderProducts();
+      closeModal('batchLinkUpdateModal');
+      showToast(`已成功保存并更新 ${changed} 条商品直达链接！`);
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('open');
+    }
+
+    function openResetModal() {
+      document.getElementById('resetModal').classList.add('open');
+    }
+
+    function confirmResetData() {
+      products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+      saveToStorage();
+      activeStoreFilter = 'ALL';
+      document.getElementById('filterStoreSelect').value = 'ALL';
+      document.getElementById('clearStoreFilterBtn').style.display = 'none';
+      renderStores();
+      renderProducts();
+      closeModal('resetModal');
+      showToast('已恢复默认 6 大商铺促销数据');
+    }
+
+    function exportJSON() {
+      const dataStr = JSON.stringify(products, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MY_Shops_Promo_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('JSON 备份文件已开始下载');
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!Array.isArray(imported)) throw new Error('格式无效');
+          products = imported;
+          saveToStorage();
+          renderStores();
+          renderProducts();
+          showToast(`成功导入 ${imported.length} 条商品促销数据！`);
+        } catch (err) {
+          showToast('导入失败：JSON 文件格式不正确');
+        }
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function copyText(text, successMsg) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg || '已复制到剪贴板');
+      } catch (err) {
+        showToast('复制失败，请手动长按复制');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>${escapeHtml(message)}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 2600);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
