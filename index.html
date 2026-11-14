@@ -1,89 +1,62 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>Gor gor love mui mui or not? 💌</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>商品价格监控看板</title>
   <style>
-    body {
-      background: linear-gradient(135deg, #ffd6e8, #ffeef6);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: "Segoe UI", sans-serif;
-    }
-
-    .card {
-      background: white;
-      padding: 40px;
-      border-radius: 20px;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    }
-
-    h1 {
-      color: #ff5c8a;
-      margin-bottom: 30px;
-    }
-
-    button {
-      font-size: 18px;
-      padding: 10px 30px;
-      border-radius: 30px;
-      border: none;
-      cursor: pointer;
-      margin: 10px;
-    }
-
-    #yes {
-      background-color: #ff5c8a;
-      color: white;
-    }
-
-    #no {
-      background-color: #ccc;
-      position: absolute;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 22px; margin-bottom: 16px; color: #111; }
+    .card { background: #fff; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; }
+    .info h2 { font-size: 16px; margin: 0 0 6px 0; }
+    .time { font-size: 12px; color: #888; }
+    .prices { text-align: right; }
+    .current { font-size: 20px; font-weight: bold; color: #e53935; }
+    .old { font-size: 13px; color: #999; text-decoration: line-through; margin-left: 6px; }
+    .badge { display: inline-block; margin-top: 6px; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #ffebee; color: #c62828; }
+    .badge.flat { background: #f0f0f0; color: #666; }
   </style>
 </head>
 <body>
-
-  <div class="card">
-    <h1>Gor gor love mui mui or not?💗</h1>
-    <button id="yes">yes</button>
-    <button id="no">no</button>
+  <div class="container">
+    <h1>📊 实时商品价格对比监控</h1>
+    <div id="list">正在加载最新比价数据...</div>
   </div>
 
-<script>
-  const noBtn = document.getElementById("no");
-  const yesBtn = document.getElementById("yes");
-
-  noBtn.addEventListener("mouseover", () => {
-    const x = Math.random() * (window.innerWidth - 100);
-    const y = Math.random() * (window.innerHeight - 50);
-    noBtn.style.left = x + "px";
-    noBtn.style.top = y + "px";
-  });
-
-  yesBtn.addEventListener("click", () => {
-    document.body.innerHTML = `
-      <div style="
-        height:100vh;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        background:linear-gradient(135deg,#ff9eb5,#ffd6e8);
-        font-family:Segoe UI;
-        text-align:center;
-      ">
-        <div>
-          <h1 style="color:white;font-size:48px;">yeah I know u love mui mui  der nohh 💖</h1>
-          <p style="color:white;font-size:24px;">xixixixixi。</p>
-        </div>
-      </div>
-    `;
-  });
-</script>
-
+  <script>
+    fetch('./prices.json?t=' + Date.now())
+      .then(res => {
+        if (!res.ok) throw new Error('暂无数据');
+        return res.json();
+      })
+      .then(data => {
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+        for (const [name, item] of Object.entries(data)) {
+          const isDrop = item.drop_percent > 0;
+          list.innerHTML += `
+            <div class="card">
+              <div class="info">
+                <h2>${name}</h2>
+                <div class="time">更新：${item.update_time}</div>
+              </div>
+              <div class="prices">
+                <div>
+                  <span class="current">RM${item.price.toFixed(2)}</span>
+                  <span class="old">RM${item.old_price.toFixed(2)}</span>
+                </div>
+                <div class="badge ${isDrop ? '' : 'flat'}">
+                  ${isDrop ? `🔥 直降 ${item.drop_percent}% (省 RM${item.drop_amount.toFixed(2)})` : '价格平稳'}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      })
+      .catch(() => {
+        document.getElementById('list').innerHTML = '<p>暂无价格记录，请先在 GitHub Actions 运行一次监控脚本。</p>';
+      });
+  </script>
 </body>
 </html>
