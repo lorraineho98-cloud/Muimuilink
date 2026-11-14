@@ -1,62 +1,48 @@
 import os
 import requests
+from bs4 import BeautifulSoup
 
-# 从 GitHub Secrets 读取你的 Bark 推送链接
+# 从 GitHub Secrets 读取 Bark 服务的 URL
 BARK_URL = os.environ.get("BARK_URL")
 
-# 监控商品清单
-products = [
-    {
-        "name": "CeraVe Hydrating Cleanser 236ml",
-        "url": "https://shopee.com.my/ceravemy.os",
-        "targetPrice": 48.00,
-    },
-    {
-        "name": "CeraVe Foaming Cleanser 236ml",
-        "url": "https://shopee.com.my/ceravemy.os",
-        "targetPrice": 56.00,
-    },
-    {
-        "name": "Cetaphil Gentle Skin Cleanser 500ml",
-        "url": "https://shopee.com.my/cetaphil.os",
-        "targetPrice": 45.00,
-    },
-    {
-        "name": "Watsons Brand Antibacterial Shower Gel 1000ml",
-        "url": "https://shopee.com.my/watsons.my",
-        "targetPrice": 15.00,
-    },
-]
-
-
-def send_bark_notification(title, body, link):
-  if not BARK_URL:
-    print("错误: 未配置 BARK_URL 环境变量")
-    return
-
-  encoded_url = requests.utils.quote(link, safe="")
-  full_url = f"{BARK_URL}/{requests.utils.quote(title)}/{requests.utils.quote(body)}?url={encoded_url}&group=好价雷达"
-
-  try:
-    response = requests.get(full_url)
-    if response.status_code == 200:
-      print(f"成功推送通知: {title}")
-    else:
-      print(f"推送失败，状态码: {response.status_code}")
-  except Exception as e:
-    print(f"推送异常: {e}")
-
+def send_bark_notification(title, body):
+    if not BARK_URL:
+        print("错误: 未配置 BARK_URL 环境变量")
+        return
+    
+    # 拼接完整的 Bark 推送请求地址
+    url = f"{BARK_URL.rstrip('/')}/{title}/{body}"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            print("成功推送通知")
+        else:
+            print(f"推送失败，状态码: {response.status_code}")
+    except Exception as e:
+        print(f"请求异常: {e}")
 
 def check_prices():
-  print("开始执行云端价格监控巡检...")
-  if BARK_URL:
-    dashboard_url = "https://snazzy-beijinho-64ae53.netlify.app"
-    send_bark_notification(
-        "🛒 今日个护好价雷达已更新",
-        "点击这里打开云端比价看板，查看 Shopee & TikTok 最新价格！",
-        dashboard_url,
-    )
-
+    # ==========================================
+    # 示例监控数据（你可以把这里的链接和价格换成你想监控的商品）
+    # ==========================================
+    # 模拟历史记录或上一次的价格（实际项目中可存入文件或数据库，这里先做演示）
+    old_price = 100.0  
+    current_price = 75.0  # 假设当前降到了 75
+    product_name = "示例 Shopee 促销商品"
+    
+    # 计算降价百分比
+    if current_price < old_price:
+        drop_amount = old_price - current_price
+        drop_percent = (drop_amount / old_price) * 100
+        
+        # 组装你要的提示内容：包含现价、原价和促销百分比
+        title = "🔥 商品降价提醒！"
+        body = f"【{product_name}】\n现价: RM{current_price:.2f} | 原价: RM{old_price:.2f}\n🎉 促销直降 {drop_percent:.1f}% (省了 RM{drop_amount:.2f})"
+        
+        print(body)
+        send_bark_notification(title, body)
+    else:
+        print("价格平稳，暂无促销降幅。")
 
 if __name__ == "__main__":
-  check_prices()
+    check_prices()
