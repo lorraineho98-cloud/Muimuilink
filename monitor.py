@@ -8,60 +8,67 @@ from bs4 import BeautifulSoup
 
 BARK_URL = os.environ.get("BARK_URL")
 DATA_FILE = "prices.json"
-# 替换为你自己的 Netlify 网页链接
 NETLIFY_URL = "https://snazzy-beijinho-64ae53.netlify.app/"
 
 # ==========================================
-# 🎯 核心监控清单（6大商铺与精选商品）
+# 🎯 核心监控清单（包含单品链接与店铺/橱窗级链接）
 # ==========================================
 TARGETS = [
     {
         "id": "preset_cetaphil_baby_1",
-        "name": "Cetaphil Baby Gentle Wash & Shampoo 400ml (婴儿无泪二合一洗发沐浴露)",
+        "name": "Cetaphil Baby Gentle Wash & Shampoo 400ml",
         "url": "https://shopee.com.my/CETAPHIL-BABY-GENTLE-WASH-SHAMPOO-400ML-i.368170152.15806038963",
-        "default_price": 47.90
+        "default_price": 47.90,
+        "link_type": "verified"
     },
     {
         "id": "preset_cetaphil_baby_2",
-        "name": "Cetaphil Baby Gentle Wash & Shampoo (230ml / 400ml / 400ml × 2 双瓶囤货装)",
+        "name": "Cetaphil Baby Gentle Wash & Shampoo (230ml / 400ml 双瓶)",
         "url": "https://shopee.com.my/CETAPHIL-Baby-Gentle-Wash-Shampoo-(230ml-400ml-400ml-%C3%97-2)-i.23935614.361910647",
-        "default_price": 88.90
+        "default_price": 88.90,
+        "link_type": "verified"
     },
     {
         "id": "preset_cetaphil_baby_3",
-        "name": "Cetaphil Baby Shampoo With Natural Chamomile 200ml (洋甘菊温和婴儿洗发水)",
+        "name": "Cetaphil Baby Shampoo With Natural Chamomile 200ml",
         "url": "https://shopee.com.my/Cetaphil-Baby-Shampoo-200ml-%E2%80%93-Gentle-Cleansing-Soothes-Scalp-Maintains-Skin-Barrier-i.112778093.1743149418",
-        "default_price": 31.04
+        "default_price": 31.04,
+        "link_type": "verified"
     },
     {
         "id": "tiktok_shop_1",
         "name": "TikTok 精选商铺 #1 (ZSpXtJCoC)",
         "url": "https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180",
-        "default_price": 89.00
+        "default_price": 89.00,
+        "link_type": "showcase"
     },
     {
         "id": "tiktok_shop_2",
         "name": "TikTok 精选商铺 #2 (ZSpXtN84Q)",
         "url": "https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180",
-        "default_price": 99.00
+        "default_price": 99.00,
+        "link_type": "showcase"
     },
     {
         "id": "tiktok_watsons",
-        "name": "Watsons Malaysia (@watsonsmy)",
+        "name": "Watsons Malaysia TikTok (@watsonsmy)",
         "url": "https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I",
-        "default_price": 32.90
+        "default_price": 32.90,
+        "link_type": "showcase"
     },
     {
         "id": "shopee_cerave",
         "name": "CeraVe Official Store (MY)",
         "url": "https://my.shp.ee/q4a3R5si",
-        "default_price": 73.60
+        "default_price": 73.60,
+        "link_type": "shop_search"
     },
     {
         "id": "shopee_watsons",
         "name": "Watsons Malaysia Official Store",
         "url": "https://my.shp.ee/vpZKAcGS",
-        "default_price": 49.90
+        "default_price": 49.90,
+        "link_type": "shop_search"
     }
 ]
 
@@ -100,7 +107,12 @@ def save_history(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-def fetch_real_price(url):
+def fetch_real_price(url, link_type):
+    # 如果是店铺级链接或橱窗链接，直接跳过网页深度爬取，防止在店铺主页抓取不到单品价格而引发异常
+    if link_type in ["shop_search", "showcase"]:
+        print(f"ℹ️ [店铺/橱窗直达] 跳过实时单品解析，保持基准或历史价: {url}")
+        return None
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
@@ -140,8 +152,11 @@ def check_all_prices():
         name = item["name"]
         url = item["url"]
         default_price = item["default_price"]
+        link_type = item.get("link_type", "verified")
         
-        fetched_price = fetch_real_price(url)
+        # 传入 link_type，如果是店铺或橱窗链接会自动安全跳过解析
+        fetched_price = fetch_real_price(url, link_type)
+        
         last_record = history.get(item_id) or history.get(name) or {}
         current_price = fetched_price if fetched_price is not None else last_record.get("price", default_price)
         old_price = last_record.get("price", current_price)
@@ -159,14 +174,14 @@ def check_all_prices():
             "drop_amount": round(drop_amount, 2),
             "drop_percent": round(drop_percent, 1),
             "update_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "product_url": url
+            "product_url": url,
+            "link_type": link_type
         }
         
     save_history(updated_history)
     
-    # 每次运行完成后强制推送，并附带 Netlify 网页跳转链接
     title = "📊 【MY 价格监控】巡检完成"
-    body = f"成功抓取 {success_count}/{len(TARGETS)} 个商品。点击本通知可直接打开网页查看看板！"
+    body = f"成功巡检 {len(TARGETS)} 个项目（含单品与店铺直达）。点击本通知直接打开网页！"
     print(body)
     send_bark_notification(title, body, url=NETLIFY_URL)
 
