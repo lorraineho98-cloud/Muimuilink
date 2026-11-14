@@ -10,26 +10,57 @@ BARK_URL = os.environ.get("BARK_URL")
 DATA_FILE = "prices.json"
 NETLIFY_URL = "https://snazzy-beijinho-64ae53.netlify.app/"
 
+# ==========================================
+# 🎯 核心监控清单（6大商铺与精选商品）
+# ==========================================
 TARGETS = [
     {
-        "name": "TikTok 重点商品 1",
-        "url": "https://vt.tiktok.com/ZSpXtJCoC/"
+        "id": "preset_cetaphil_baby_1",
+        "name": "Cetaphil Baby Gentle Wash & Shampoo 400ml (婴儿无泪二合一洗发沐浴露)",
+        "url": "https://shopee.com.my/CETAPHIL-BABY-GENTLE-WASH-SHAMPOO-400ML-i.368170152.15806038963",
+        "default_price": 47.90
     },
     {
-        "name": "TikTok 重点商品 2",
-        "url": "https://vt.tiktok.com/ZSpXtN84Q/"
+        "id": "preset_cetaphil_baby_2",
+        "name": "Cetaphil Baby Gentle Wash & Shampoo (230ml / 400ml / 400ml × 2 双瓶囤货装)",
+        "url": "https://shopee.com.my/CETAPHIL-Baby-Gentle-Wash-Shampoo-(230ml-400ml-400ml-%C3%97-2)-i.23935614.361910647",
+        "default_price": 88.90
     },
     {
-        "name": "Shopee 重点商品 1",
-        "url": "https://my.shp.ee/ngy4Hpb4"
+        "id": "preset_cetaphil_baby_3",
+        "name": "Cetaphil Baby Shampoo With Natural Chamomile 200ml (洋甘菊温和婴儿洗发水)",
+        "url": "https://shopee.com.my/Cetaphil-Baby-Shampoo-200ml-%E2%80%93-Gentle-Cleansing-Soothes-Scalp-Maintains-Skin-Barrier-i.112778093.1743149418",
+        "default_price": 31.04
     },
     {
-        "name": "Shopee 重点商品 2",
-        "url": "https://my.shp.ee/q4a3R5si"
+        "id": "tiktok_shop_1",
+        "name": "TikTok 精选商铺 #1 (ZSpXtJCoC)",
+        "url": "https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180",
+        "default_price": 89.00
     },
     {
-        "name": "Shopee 重点商品 3",
-        "url": "https://my.shp.ee/vpZKAcGS"
+        "id": "tiktok_shop_2",
+        "name": "TikTok 精选商铺 #2 (ZSpXtN84Q)",
+        "url": "https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180",
+        "default_price": 99.00
+    },
+    {
+        "id": "tiktok_watsons",
+        "name": "Watsons Malaysia (@watsonsmy)",
+        "url": "https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I",
+        "default_price": 32.90
+    },
+    {
+        "id": "shopee_cerave",
+        "name": "CeraVe Official Store (MY)",
+        "url": "https://my.shp.ee/q4a3R5si",
+        "default_price": 73.60
+    },
+    {
+        "id": "shopee_watsons",
+        "name": "Watsons Malaysia Official Store",
+        "url": "https://my.shp.ee/vpZKAcGS",
+        "default_price": 49.90
     }
 ]
 
@@ -74,15 +105,12 @@ def fetch_real_price(url):
         "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
     }
     try:
-        # 加上 allow_redirects=True 让它自动跟随网页重定向
         resp = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
-        # 如果最终跳转到了特殊协议，直接跳过解析
         if not resp.url.startswith("http"):
             return None
             
         soup = BeautifulSoup(resp.text, "html.parser")
         
-        # 尝试提取价格
         price_meta = soup.find("meta", property="og:price:amount") or soup.find("meta", property="product:price:amount")
         if price_meta and price_meta.get("content"):
             return float(price_meta["content"])
@@ -106,18 +134,44 @@ def check_all_prices():
     updated_history = {}
     
     for item in TARGETS:
+        item_id = item["id"]
         name = item["name"]
         url = item["url"]
+        default_price = item["default_price"]
         
         fetched_price = fetch_real_price(url)
         
-        last_record = history.get(name, {})
-        current_price = fetched_price if fetched_price is not None else last_record.get("price", 50.0)
-        old_price = last_record.get("price", 60.0) # 设一个比现价高的原价，用来测试通知
+        last_record = history.get(item_id) or history.get(name) or {}
+        current_price = fetched_price if fetched_price is not None else last_record.get("price", default_price)
+        old_price = last_record.get("price", current_price)
         
-        # 为了测试通知，我们在这里主动制造一个“降价”效果，确保手机能立刻收到推送
-        if current_price >= old_price:
-            old_price = current_price + 10.0
+        drop_amount = 0.0
+        drop_percent = 0.0
+        
+        # 仅当价格真正下跌时才触发 Bark 通知
+        if current_price < old_price:
+            drop_amount = old_price - current_price
+            drop_percent = (drop_amount / old_price) * 100
             
-        drop_amount = old_price - current_price
-        drop_percent = (drop_amount / old_price) *
+            title = f"🔥 【降价提醒】{name[:20]}..."
+            body = f"现价: RM{current_price:.2f} (原价: RM{old_price:.2f})\n🎉 直降 {drop_percent:.1f}% (省 RM{drop_amount:.2f})"
+            print(body)
+            send_bark_notification(title, body, url=NETLIFY_URL)
+        else:
+            status_text = "（真实抓价成功）" if fetched_price is not None else "（受平台限制，沿用基准价）"
+            print(f"[{name[:25]}] 当前 RM{current_price:.2f}，价格平稳 {status_text}")
+            
+        updated_history[item_id] = {
+            "name": name,
+            "price": current_price,
+            "old_price": old_price,
+            "drop_amount": round(drop_amount, 2),
+            "drop_percent": round(drop_percent, 1),
+            "update_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "product_url": url
+        }
+        
+    save_history(updated_history)
+
+if __name__ == "__main__":
+    check_all_prices()
