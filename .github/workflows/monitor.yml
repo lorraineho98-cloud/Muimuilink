@@ -1,18 +1,17 @@
 name: Price Monitor CI
 
 on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:  # 允许你随时在网页上手动点击按钮运行
   schedule:
-    - cron: '0 0,12 * * *'
-  workflow_dispatch:
-
-permissions:
-  contents: write
+    - cron: '0 0,12 * * *'  # 每天马来西亚时间中午 12:00 和午夜 12:00 自动定时运行
 
 jobs:
   check-price:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -22,18 +21,19 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-      - name: Run price checker
+      - name: Run price monitor script
         env:
           BARK_URL: ${{ secrets.BARK_URL }}
         run: |
           python monitor.py
 
-      - name: Commit updated prices.json
+      - name: Commit and push changes if prices updated
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add prices.json
-          git commit -m "Update price comparison data" || exit 0
+          git commit -m "Auto-update prices.json by GitHub Actions" || echo "No changes to commit"
           git push
