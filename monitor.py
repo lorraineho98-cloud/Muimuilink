@@ -1,22 +1,26 @@
 import os
 import json
+import urllib.parse
+from datetime import datetime
 import requests
-from bs4 import BeautifulSoup
 
-# 从环境变量读取配置
 BARK_URL = os.environ.get("BARK_URL")
 DATA_FILE = "prices.json"
+NETLIFY_URL = "https://snazzy-beijinho-64ae53.netlify.app/"
 
 def send_bark_notification(title, body, url=""):
     if not BARK_URL:
         print("错误: 未配置 BARK_URL 环境变量")
         return
     
-    # 拼接 Bark 推送地址（加上 url 参数实现点击通知直接跳转网页）
+    # 对中文和特殊字符进行 URL 编码，防止链接参数截断或发送失败
+    safe_title = urllib.parse.quote(title)
+    safe_body = urllib.parse.quote(body)
     base_url = BARK_URL.rstrip('/')
-    target_url = f"{base_url}/{title}/{body}"
+    target_url = f"{base_url}/{safe_title}/{safe_body}"
+    
     if url:
-        target_url += f"?url={url}"
+        target_url += f"?url={urllib.parse.quote(url)}"
         
     try:
         response = requests.get(target_url, timeout=10)
@@ -32,7 +36,7 @@ def load_history():
         try:
             with open(DATA_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except:
+        except Exception:
             return {}
     return {}
 
@@ -41,34 +45,36 @@ def save_history(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def check_prices():
-    # 模拟你要监控的商品数据（后续可替换为真实的 Shopee/TikTok 抓取逻辑）
-    product_name = "示例 Shopee 热门商品"
-    product_url = "https://your-netlify-site.netlify.app"  # 你的网页端链接
-    current_price = 70.0  # 当前抓取到的价格
+    # 测试商品数据（后续替换为你真实的 Shopee/TikTok 抓取逻辑）
+    product_name = "Shopee 热门护肤套装"
+    current_price = 68.0
     
     history = load_history()
-    old_price = history.get(product_name, {}).get("price", 100.0) # 默认上次是 100
+    # 如果没有历史记录，默认原价为 100.0 以便触发首次演示
+    old_price = history.get(product_name, {}).get("price", 100.0)
     
-    print(f"商品: {product_name} | 上次价格: RM{old_price} | 当前价格: RM{current_price}")
+    drop_amount = 0.0
+    drop_percent = 0.0
     
-    # 对比价格
     if current_price < old_price:
         drop_amount = old_price - current_price
         drop_percent = (drop_amount / old_price) * 100
         
-        title = "🔥 发现降价！"
-        body = f"【{product_name}】\n现价: RM{current_price:.2f} (原价: RM{old_price:.2f})\n🎉 跌幅 {drop_percent:.1f}% (省了 RM{drop_amount:.2f})"
+        title = "🔥 发现降价促销！"
+        body = f"【{product_name}】\n现价: RM{current_price:.2f} (原价: RM{old_price:.2f})\n🎉 直降 {drop_percent:.1f}% (省 RM{drop_amount:.2f})"
         
         print(body)
-        send_bark_notification(title, body, url=product_url)
+        send_bark_notification(title, body, url=NETLIFY_URL)
     else:
-        print("价格无优惠，暂不推送。")
+        print("价格平稳，暂不推送。")
         
-    # 更新历史记录并保存，供网页端读取展示
+    # 保存最新比价数据供网页端展示
     history[product_name] = {
         "price": current_price,
         "old_price": old_price,
-        "update_time": "2026-11-14"
+        "drop_amount": round(drop_amount, 2),
+        "drop_percent": round(drop_percent, 1),
+        "update_time": datetime.now().strftime("%Y-%m-%d %H:%M")
     }
     save_history(history)
 
