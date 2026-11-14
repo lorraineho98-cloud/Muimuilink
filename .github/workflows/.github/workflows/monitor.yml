@@ -1,0 +1,28 @@
+name: Price Monitor CI
+
+on:
+  schedule:
+    - cron: '0 0,12 * * *' # 每天定时运行
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  check-price:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: Run price checker
+        env:
+          BARK_URL: ${{ secrets.BARK_URL }}
+        run: |
+          python monitor.py
