@@ -1,42 +1,74 @@
 {
-  "TikTok 重点商品 1": {
-    "price": 50.0,
-    "old_price": 50.0,
+  "preset_cetaphil_baby_1": {
+    "name": "Cetaphil Baby Gentle Wash & Shampoo 400ml (婴儿无泪二合一洗发沐浴露)",
+    "price": 47.9,
+    "old_price": 47.9,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:20",
+    "update_time": "2026-11-14 08:45",
+    "product_url": "https://shopee.com.my/CETAPHIL-BABY-GENTLE-WASH-SHAMPOO-400ML-i.368170152.15806038963"
+  },
+  "preset_cetaphil_baby_2": {
+    "name": "Cetaphil Baby Gentle Wash & Shampoo (230ml / 400ml / 400ml × 2 双瓶囤货装)",
+    "price": 88.9,
+    "old_price": 88.9,
+    "drop_amount": 0.0,
+    "drop_percent": 0.0,
+    "update_time": "2026-11-14 08:45",
+    "product_url": "https://shopee.com.my/CETAPHIL-Baby-Gentle-Wash-Shampoo-(230ml-400ml-400ml-%C3%97-2)-i.23935614.361910647"
+  },
+  "preset_cetaphil_baby_3": {
+    "name": "Cetaphil Baby Shampoo With Natural Chamomile 200ml (洋甘菊温和婴儿洗发水)",
+    "price": 31.04,
+    "old_price": 31.04,
+    "drop_amount": 0.0,
+    "drop_percent": 0.0,
+    "update_time": "2026-11-14 08:45",
+    "product_url": "https://shopee.com.my/Cetaphil-Baby-Shampoo-200ml-%E2%80%93-Gentle-Cleansing-Soothes-Scalp-Maintains-Skin-Barrier-i.112778093.1743149418"
+  },
+  "tiktok_shop_1": {
+    "name": "TikTok 精选商铺 #1 (ZSpXtJCoC)",
+    "price": 89.0,
+    "old_price": 89.0,
+    "drop_amount": 0.0,
+    "drop_percent": 0.0,
+    "update_time": "2026-11-14 08:45",
     "product_url": "https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180"
   },
-  "TikTok 重点商品 2": {
-    "price": 50.0,
-    "old_price": 50.0,
+  "tiktok_shop_2": {
+    "name": "TikTok 精选商铺 #2 (ZSpXtN84Q)",
+    "price": 99.0,
+    "old_price": 99.0,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:20",
+    "update_time": "2026-11-14 08:45",
     "product_url": "https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180"
   },
-  "Shopee 重点商品 1": {
-    "price": 50.0,
-    "old_price": 50.0,
+  "tiktok_watsons": {
+    "name": "Watsons Malaysia (@watsonsmy)",
+    "price": 32.9,
+    "old_price": 32.9,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:20",
-    "product_url": "https://my.shp.ee/ngy4Hpb4"
+    "update_time": "2026-11-14 08:45",
+    "product_url": "https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I"
   },
-  "Shopee 重点商品 2": {
-    "price": 50.0,
-    "old_price": 50.0,
+  "shopee_cerave": {
+    "name": "CeraVe Official Store (MY)",
+    "price": 73.6,
+    "old_price": 73.6,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:20",
+    "update_time": "2026-11-14 08:45",
     "product_url": "https://my.shp.ee/q4a3R5si"
   },
-  "Shopee 重点商品 3": {
-    "price": 50.0,
-    "old_price": 50.0,
+  "shopee_watsons": {
+    "name": "Watsons Malaysia Official Store",
+    "price": 49.9,
+    "old_price": 49.9,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:20",
+    "update_time": "2026-11-14 08:46",
     "product_url": "https://my.shp.ee/vpZKAcGS"
   }
 }
