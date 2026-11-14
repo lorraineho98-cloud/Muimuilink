@@ -1,50 +1,42 @@
 {
-  "TikTok 商品 1": {
+  "TikTok 重点商品 1": {
     "price": 50.0,
     "old_price": 50.0,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:09",
+    "update_time": "2026-11-14 08:20",
     "product_url": "https://vt.tiktok.com/ZSpXtJCoC/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180"
   },
-  "TikTok 商品 2": {
+  "TikTok 重点商品 2": {
     "price": 50.0,
     "old_price": 50.0,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:09",
+    "update_time": "2026-11-14 08:20",
     "product_url": "https://vt.tiktok.com/ZSpXtN84Q/?page=TikTokShop&utm_campaign=client_share&utm_source=whatsapp&share_app_id=1180"
   },
-  "Watsons TikTok 店铺": {
+  "Shopee 重点商品 1": {
     "price": 50.0,
     "old_price": 50.0,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:09",
-    "product_url": "https://www.tiktok.com/@watsonsmy?_r=1&_t=ZS-9BOFIksEr8I"
-  },
-  "Shopee 商品 1": {
-    "price": 50.0,
-    "old_price": 50.0,
-    "drop_amount": 0.0,
-    "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:09",
+    "update_time": "2026-11-14 08:20",
     "product_url": "https://my.shp.ee/ngy4Hpb4"
   },
-  "Shopee 商品 2": {
+  "Shopee 重点商品 2": {
     "price": 50.0,
     "old_price": 50.0,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:09",
+    "update_time": "2026-11-14 08:20",
     "product_url": "https://my.shp.ee/q4a3R5si"
   },
-  "Shopee 商品 3": {
+  "Shopee 重点商品 3": {
     "price": 50.0,
     "old_price": 50.0,
     "drop_amount": 0.0,
     "drop_percent": 0.0,
-    "update_time": "2026-11-14 08:09",
+    "update_time": "2026-11-14 08:20",
     "product_url": "https://my.shp.ee/vpZKAcGS"
   }
 }
