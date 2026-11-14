@@ -1,37 +1,29 @@
-def check_all_prices():
-    history = load_history()
-    updated_history = {}
+import os
+import requests
+
+# 直接从环境获取
+BARK_URL = os.environ.get("BARK_URL")
+
+def test_push():
+    print(f"当前读取到的 BARK_URL 是: {BARK_URL}")
     
-    # 拼接一个总览通知，或者每次运行都强制发一条最新状态
-    success_count = 0
-    for item in TARGETS:
-        item_id = item["id"]
-        name = item["name"]
-        url = item["url"]
-        default_price = item["default_price"]
-        
-        fetched_price = fetch_real_price(url)
-        last_record = history.get(item_id) or history.get(name) or {}
-        current_price = fetched_price if fetched_price is not None else last_record.get("price", default_price)
-        old_price = last_record.get("price", current_price)
-        
-        if fetched_price is not None:
-            success_count += 1
-            
-        updated_history[item_id] = {
-            "name": name,
-            "price": current_price,
-            "old_price": old_price,
-            "drop_amount": round(old_price - current_price, 2) if current_price < old_price else 0.0,
-            "drop_percent": round(((old_price - current_price) / old_price) * 100, 1) if current_price < old_price else 0.0,
-            "update_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "product_url": url
-        }
-        
-    save_history(updated_history)
+    if not BARK_URL:
+        print("❌ 致命错误: BARK_URL 环境变量为空！说明你在 GitHub Secrets 里的名字写错了，或者根本没配成功。")
+        return
+
+    # 强制拼一个最简单的测试链接
+    target_url = f"{BARK_URL.rstrip('/')}/价格监控终极测试/GitHub云端连通成功！"
     
-    # 🔥 核心修改：每次脚本跑完，强制给手机发一条“最新抓取状态”通知！
-    title = "📊 【MY 价格监控】最新抓取完成"
-    body = f"云端已完成所有商铺巡检！成功抓取 {success_count}/{len(TARGETS)} 个商品最新价，Netlify 看板已同步更新。"
-    print(body)
-    send_bark_notification(title, body, url=NETLIFY_URL)
+    try:
+        response = requests.get(target_url, timeout=10)
+        print(f"Bark 服务器响应状态码: {response.status_code}")
+        print(f"Bark 服务器返回内容: {response.text}")
+        if response.status_code == 200:
+            print("✅ 理论上手机应该已经响了！")
+        else:
+            print("❌ Bark 服务器拒绝了请求，请检查 Key 是否正确。")
+    except Exception as e:
+        print(f"❌ 请求发生异常: {e}")
+
+if __name__ == "__main__":
+    test_push()
